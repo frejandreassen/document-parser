@@ -3,6 +3,7 @@ from google.api_core.client_options import ClientOptions
 from google.cloud import documentai_v1 as documentai
 from PIL import Image
 from io import BytesIO
+import pandas as pd
 
 # Your Google Cloud settings
 PROJECT_ID = "andreassens"
@@ -21,8 +22,7 @@ def process_document(file):
     result = docai_client.process_document(request=request)
 
     document_object = result.document
-    print(document_object.entities)
-    return document_object.text
+    return document_object
 
 st.set_page_config(layout="wide", page_title="Document Parser")
 
@@ -33,9 +33,42 @@ uploaded_file = st.file_uploader("Upload a document", type=["pdf", "jpg", "jpeg"
 
 if uploaded_file is not None:
     st.write("Processing the document...")
-    extracted_text = process_document(uploaded_file)
+    document = process_document(uploaded_file)
     st.write("Document processing complete.")
     st.write("### Extracted Text")
-    st.write(extracted_text)
+    st.code(document.text)
+    
+    types = []
+    raw_values = []
+    normalized_values = []
+    confidence = []
+
+    # Grab each key/value pair and their corresponding confidence scores.
+    for entity in document.entities:
+        types.append(entity.type_)
+        raw_values.append(entity.mention_text)
+        normalized_values.append(entity.normalized_value.text)
+        confidence.append(f"{entity.confidence:.0%}")
+
+        # Get Properties (Sub-Entities) with confidence scores
+        for prop in entity.properties:
+            types.append(prop.type_)
+            raw_values.append(prop.mention_text)
+            normalized_values.append(prop.normalized_value.text)
+            confidence.append(f"{prop.confidence:.0%}")
+
+    # Create a Pandas Dataframe to print the values in tabular format.
+    df = pd.DataFrame(
+        {
+            "Type": types,
+            "Raw Value": raw_values,
+            "Normalized Value": normalized_values,
+            "Confidence": confidence,
+        }
+    )
+    
+    st.write("### Entities")
+    st.write(df)
+
 else:
     st.write("Please upload a document.")
