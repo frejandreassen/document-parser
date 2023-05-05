@@ -1,5 +1,5 @@
-runtime: python39
-entrypoint: streamlit run app.py
+runtime: python37
+entrypoint: streamlit run document_parse.py
 env: standard
 service: docsparser
 instance_class: F2
