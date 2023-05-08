@@ -1,6 +1,7 @@
 import streamlit as st
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai_v1 as documentai
+from google.oauth2 import service_account
 from PIL import Image
 from io import BytesIO
 import pandas as pd
@@ -10,8 +11,15 @@ PROJECT_ID = "andreassens"
 LOCATION = "eu"
 PROCESSOR_ID = "ddc671fa9fcf4c58"
 
+# Create a credentials object using the service account info from the secrets
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"],
+    scopes=["https://www.googleapis.com/auth/cloud-platform"],
+)
+
 def process_document(file):
     docai_client = documentai.DocumentProcessorServiceClient(
+        credentials=credentials,
         client_options=ClientOptions(api_endpoint=f"{LOCATION}-documentai.googleapis.com")
     )
 
@@ -24,10 +32,10 @@ def process_document(file):
     document_object = result.document
     return document_object
 
-st.set_page_config(layout="wide", page_title="Document Parser")
+st.set_page_config(page_title="Document Parser")
 
 st.write("## Parse Documents to Text")
-st.write("Upload a document and let Google Document AI extract the text for you.")
+st.write("Upload a document and let Google Document AI extract the text for you. Perfect for Swedish invoices")
 
 uploaded_file = st.file_uploader("Upload a document", type=["pdf", "jpg", "jpeg", "png", "tiff"])
 
