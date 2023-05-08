@@ -44,7 +44,7 @@ if uploaded_file is not None:
     document = process_document(uploaded_file)
     st.write("Document processing complete.")
     st.write("### Extracted Text")
-    st.code(document.text)
+    st.write(document.text)
     
     types = []
     raw_values = []
